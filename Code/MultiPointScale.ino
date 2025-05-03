@@ -191,10 +191,6 @@ void setup() {
   lcd.clear();
   print4Background();
 
-  LoadCell_1.powerDown();
-  LoadCell_2.powerDown();
-  LoadCell_3.powerDown();
-  LoadCell_4.powerDown();
 }
 
 void getSamples() {
