@@ -11,15 +11,15 @@ void splashScreen() {
   lcd.setCursor(1, 0);
   lcd.print("Multi-point scale");
   lcd.setCursor(3, 1);
-  lcd.print("Version 0.1.9");
+  lcd.print("Version 0.3.0");
   lcd.setCursor(3, 2);
   lcd.print("Designed by");
   lcd.setCursor(6, 3);
   lcd.print("Mason C");
+  delay(1250);
 }
 
-void print4Background()
-{
+void print4Background() {
   lcd.clear();
   lcd.setCursor(0,0);
   lcd.print("LDC1: ");
@@ -37,7 +37,61 @@ void print4Background()
   lcd.print("Total: ");
 }
 
-void printLC1(float reading) {
+void print1Background() {
+  lcd.clear();
+  lcd.setCursor(5,1);
+  lcd.print("LDC1: ");
+}
+
+void print3Background() {
+  lcd.clear();
+  lcd.setCursor(6, 0);
+  lcd.print("LDC1:");
+  lcd.setCursor(0, 1);
+  lcd.print("LDC2:");
+  lcd.setCursor(10, 1);
+  lcd.print("LDC3:");
+  lcd.setCursor(0, 2);
+  lcd.print("L/R: ");
+  lcd.setCursor(10, 2);
+  lcd.print("F/B: ");
+  lcd.setCursor(3, 3);
+  lcd.print("Total: ");
+}
+
+void printLC13(float reading) {
+  int rounded = (int) reading;
+  lcd.setCursor(11, 0);
+  lcd.print("     ");
+  lcd.setCursor(11, 0);
+  lcd.print(rounded, 0);
+}
+
+void printLC23(float reading) {
+  int rounded = (int) reading;
+  lcd.setCursor(5, 1);
+  lcd.print("     ");
+  lcd.setCursor(5, 1);
+  lcd.print(rounded, 0);
+}
+
+void printLC33(float reading) {
+  int rounded = (int) reading;
+  lcd.setCursor(15, 1);
+  lcd.print("     ");
+  lcd.setCursor(15, 1);
+  lcd.print(rounded, 0);
+}
+
+void printLC11(float reading) {
+  int rounded = (int) reading;
+  lcd.setCursor(11, 1);
+  lcd.print("      ");
+  lcd.setCursor(11, 1);
+  lcd.print(rounded,0);
+}
+
+void printLC12 (float reading) {
   int rounded = (int) reading;
   lcd.setCursor(5,0);
   lcd.print("     ");
@@ -45,7 +99,7 @@ void printLC1(float reading) {
   lcd.print(rounded,0);
 }
 
-void printLC2(float reading) {
+void printLC22 (float reading) {
   int rounded = (int) reading;
   lcd.setCursor(15,0);
   lcd.print("      ");
@@ -53,7 +107,56 @@ void printLC2(float reading) {
   lcd.print(rounded,0);
 }
 
-void printLC3(float reading) {
+void printLR2 (float left, float right, float total) {
+  lcd.setCursor(10, 1);
+  lcd.print("        ");
+  lcd.setCursor(10, 1);
+  if (total > 2) {
+    lcd.print(left,0);
+    lcd.print("/");
+    lcd.print(right,0);
+  } else {
+    lcd.print("n/a");
+  }
+}
+
+void print2Total(float total) {
+  int rounded = (int) total;
+  lcd.setCursor(10, 3);
+  lcd.print("      ");
+  lcd.setCursor(10, 3);
+  lcd.print(rounded,0);
+}
+
+void print2Background() {
+  lcd.clear();
+  lcd.setCursor(0,0);
+  lcd.print("LDC1: ");
+  lcd.setCursor(10, 0);
+  lcd.print("LDC2: ");
+  lcd.setCursor(5,1);
+  lcd.print("L/R: ");
+  lcd.setCursor(3, 3);
+  lcd.print("Total: ");
+}
+
+void printLC14(float reading) {
+  int rounded = (int) reading;
+  lcd.setCursor(5,0);
+  lcd.print("     ");
+  lcd.setCursor(5, 0);
+  lcd.print(rounded,0);
+}
+
+void printLC24(float reading) {
+  int rounded = (int) reading;
+  lcd.setCursor(15,0);
+  lcd.print("      ");
+  lcd.setCursor(15, 0);
+  lcd.print(rounded,0);
+}
+
+void printLC34(float reading) {
   int rounded = (int) reading;
   lcd.setCursor(5,1);
   lcd.print("     ");
@@ -61,7 +164,7 @@ void printLC3(float reading) {
   lcd.print(rounded,0);
 }
 
-void printLC4(float reading) {
+void printLC44(float reading) {
   int rounded = (int) reading;
   lcd.setCursor(15,1);
   lcd.print("    ");
@@ -71,7 +174,7 @@ void printLC4(float reading) {
 
 void printLR(float left, float right, float total) {
   lcd.setCursor(0, 2);
-  lcd.print("L/R:     ");
+  lcd.print("L/R:      ");
   lcd.setCursor(4, 2);
   if (total > 2) {
     lcd.print(left,0);
