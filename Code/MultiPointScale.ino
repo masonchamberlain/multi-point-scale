@@ -1,5 +1,7 @@
 #include <LCD.h>
 
+int loadCellCount = 0;
+
 #define button4_pin 12
 int button4Presses = 0;
 unsigned long button4_time = 0;
@@ -70,10 +72,6 @@ void IRAM_ATTR button1ISR() {
 
 const bool debug = false;
 
-// LC1   LC2
-
-// LC3   LC4
-
 //pins:
 const int HX711_dout_1 = 5; //mcu > HX711 no 1 dout pin
 const int HX711_sck_1 = 4; //mcu > HX711 no 1 sck pin
@@ -107,7 +105,7 @@ void setup() {
   pinMode(button1_pin, INPUT_PULLUP);
   attachInterrupt(button1_pin, button1ISR, FALLING);
   pinMode(button2_pin, INPUT_PULLUP);
-  //attachInterrupt(button2_pin, button2ISR, FALLING);
+  attachInterrupt(button2_pin, button2ISR, FALLING);
   pinMode(button3_pin, INPUT_PULLUP);
   //attachInterrupt(button3_pin, button3ISR, FALLING);
   pinMode(button4_pin, INPUT_PULLUP);
@@ -120,8 +118,6 @@ void setup() {
 
   lcd.clear();
   splashScreen();
-
-  delay(1000);
 
   lcd.clear();
   lcd.setCursor(6, 1);
@@ -186,19 +182,144 @@ void setup() {
   LoadCell_3.setSamplesInUse(samples);
   LoadCell_4.setSamplesInUse(samples);
 
-  Serial.println("Startup is complete");
+  cellCountSelection();
+}
 
-  lcd.clear();
-  print4Background();
+void enableInterrupts() {
+  attachInterrupt(button1_pin, button1ISR, FALLING);
+  attachInterrupt(button2_pin, button2ISR, FALLING);
+  //attachInterrupt(button3_pin, button3ISR, FALLING);
+  attachInterrupt(button4_pin, button4ISR, FALLING);
 
+}
+
+void disableInterrupts() {
+  detachInterrupt(digitalPinToInterrupt(button1_pin));
+  detachInterrupt(digitalPinToInterrupt(button2_pin));
+  //detachInterrupt(digitalPinToInterrupt(button3_pin));
+  detachInterrupt(digitalPinToInterrupt(button4_pin));
 }
 
 void getSamples() {
   Serial.println(LoadCell_1.getSamplesInUse());
 }
 
-void tearAll() {
+void setBackground() {
+  switch (loadCellCount) {
+    case 1:
+      print1Background();
+      break;
+    case 2:
+      print2Background();
+      break;
+    case 3:
+      print3Background();
+      break;
+    case 4:
+      print4Background();
+      break;
+  }
+}
 
+void cellCountSelection() {
+  LoadCell_1.powerDown();
+  LoadCell_2.powerDown();
+  LoadCell_3.powerDown();
+  LoadCell_4.powerDown();
+
+  lcd.clear();
+  lcd.setCursor(1, 0);
+  lcd.print("Select number of");
+  lcd.setCursor(0, 1);
+  lcd.print("connected load cells");
+  lcd.setCursor(0, 3);
+  lcd.print("1     2      3     4");
+
+  button1Presses = 0;
+  button2Presses = 0;
+  button3Presses = 0;
+  button4Presses = 0;
+
+  int buttons = digitalRead(button1_pin) + digitalRead(button2_pin) + digitalRead(button3_pin) + digitalRead(button4_pin);
+
+  while (buttons < 4) {
+    buttons = digitalRead(button1_pin) + digitalRead(button2_pin) + digitalRead(button3_pin) + digitalRead(button4_pin);
+  }
+
+  delay(250);
+
+  bool cycle = true;
+  bool cancel = false;
+
+  while (cycle) {
+    int button1State = digitalRead(button1_pin);
+    int button2State = digitalRead(button2_pin);
+    int button3State = digitalRead(button3_pin);
+    int button4State = digitalRead(button4_pin);
+
+    delay(100);
+    
+    if (button1State == LOW) {
+      while (digitalRead(button1_pin) == LOW){
+        continue;
+      }
+      delay(150);
+      cancel = true;
+      loadCellCount = 1;
+      LoadCell_1.powerUp();
+      button1Presses = 0;
+      break;
+    }
+
+    if (button2State == LOW) {
+      while (digitalRead(button1_pin) == LOW) {
+        continue;
+      }
+      delay(150);
+      cancel = true;
+      loadCellCount = 2;
+      LoadCell_1.powerUp();
+      LoadCell_2.powerUp();
+      button2Presses = 0;
+      break;
+    }
+
+    if (button3State == LOW) {
+      while (digitalRead(button3_pin) == LOW) {
+        continue;
+      }
+      delay(150);
+      cancel = true;
+      loadCellCount = 3;
+      LoadCell_1.powerUp();
+      LoadCell_2.powerUp();
+      LoadCell_3.powerUp();
+      button3Presses = 0;
+      break;
+    }
+
+    if (button4State == LOW) {
+      while (digitalRead(button4_pin) == LOW){
+        continue;
+      }
+      delay(150);
+      cancel = true;
+      loadCellCount = 4;
+      LoadCell_1.powerUp();
+      LoadCell_2.powerUp();
+      LoadCell_3.powerUp();
+      LoadCell_4.powerUp();
+      button4Presses = 0;
+      break;
+    }
+  }
+
+  tearAll();
+
+  setBackground();
+}
+
+void tear1() {
   lcd.clear();
   printTear1();
   LoadCell_1.tare();
@@ -206,26 +327,60 @@ void tearAll() {
     Serial.println("Tare load cell 1 complete");
     printTear1Complete();
   }
+}
+
+void tear2() {
   printTear2();
   LoadCell_2.tare();  
   if (LoadCell_2.getTareStatus() == true) {
     Serial.println("Tare load cell 2 complete");
     printTear2Complete();
   }
+}
+
+void tear3() {
   printTear3();
   LoadCell_3.tare();
   if (LoadCell_3.getTareStatus() == true) {
     Serial.println("Tare load cell 3 complete");
     printTear3Complete();
   }
+}
+
+void tear4() {
   printTear4();
   LoadCell_4.tare();
   if (LoadCell_4.getTareStatus() == true) {
     Serial.println("Tare load cell 4 complete");
     printTear4Complete();
   } 
+}
+
+void tearAll() {
+  switch (loadCellCount) {
+    case 1:
+      tear1();
+      break;
+    case 2:
+      tear1();
+      tear2();
+      break;
+    case 3:
+      tear1();
+      tear2();
+      tear3();
+      break;
+    case 4:
+      tear1();
+      tear2();
+      tear3();
+      tear4();
+  }
+
+  delay(375);
+
   lcd.clear();
-  print4Background();
+  setBackground();
 }
 
 void buttonCalibrate(int LoadCell) {
@@ -536,11 +691,6 @@ void calibrateMenu() {
 
   Serial.println("Calibrate menu");
 
-  detachInterrupt(digitalPinToInterrupt(button1_pin));
-  //detachInterrupt(digitalPinToInterrupt(button2_pin));
-  //detachInterrupt(digitalPinToInterrupt(button3_pin));
-  detachInterrupt(digitalPinToInterrupt(button4_pin));
-
   int buttons = digitalRead(button1_pin) + digitalRead(button2_pin) + digitalRead(button3_pin) + digitalRead(button4_pin);
 
   while (buttons < 4) {
@@ -553,15 +703,39 @@ void calibrateMenu() {
   lcd.setCursor(1, 1);
   lcd.print("cell to calibrate");
   lcd.setCursor(0, 3);
-  lcd.print("1     2      3     4");
+  
+  switch (loadCellCount) {
+    case 1:
+      lcd.print("1");
+      break;
+    case 2:
+      lcd.print("1     2");
+      break;
+    case 3:
+      lcd.print("1     2      3");
+      break;
+    case 4:
+      lcd.print("1     2      3     4");
+  }
 
   bool cycle = true;
 
   while (cycle) {
-    int button1State = digitalRead(button1_pin);
-    int button2State = digitalRead(button2_pin);
-    int button3State = digitalRead(button3_pin);
-    int button4State = digitalRead(button4_pin);
+    int button1State = 1;
+    int button2State = 1;
+    int button3State = 1;
+    int button4State = 1;
+
+    switch (loadCellCount) {
+      case 4:
+        button4State = digitalRead(button4_pin);
+      case 3:
+        button3State = digitalRead(button3_pin);
+      case 2:
+        button2State = digitalRead(button2_pin);
+      case 1:
+        button1State = digitalRead(button1_pin);
+    }
 
     delay(50);
 
@@ -613,49 +787,104 @@ void calibrateMenu() {
   //Serial.println(button4Presses);
 
   button1Presses = 0;
-  //button2Presses = 0;
+  button2Presses = 0;
   button3Presses = 0;
-  //button4Presses = 0;
-  attachInterrupt(button1_pin, button1ISR, FALLING);
-  //attachInterrupt(button2_pin, button2ISR, FALLING);
-  //attachInterrupt(button3_pin, button3ISR, FALLING);
-  attachInterrupt(button4_pin, button4ISR, FALLING);
+  button4Presses = 0;
+
+  lcd.clear();
+  setBackground();
 }
 
-void loop() {
+void oneLoadCell() {
+  static boolean newDataReady = 0;
+  const int serialPrintInterval = updateTime;
+
+  if (LoadCell_1.update()) newDataReady = true;
+
+  if ((newDataReady)) {
+    if (millis() > t + serialPrintInterval) {
+      float LC1 = max(LoadCell_1.getData(), (float) 0);
+      printLC11(LC1);
+      newDataReady = 0;
+      t = millis();
+    }
+  }
+}
+
+void twoLoadCells() {
+  static boolean newDataReady = 0;
+  const int serialPrintInterval = updateTime;
+
+  if (LoadCell_1.update()) {
+    newDataReady = true;
+    LoadCell_2.update();
+  }
+
+  if ((newDataReady)) {
+    if (millis() > t + serialPrintInterval) {
+      float LC1 = max(LoadCell_1.getData(), (float) 0);
+      float LC2 = max(LoadCell_2.getData(), (float) 0);
+      float LCT = LC1 + LC2;
+      float LCL = abs(LC1/(LC1+LC2)*100);
+      LCL = min(LCL, (float) 100);
+      float LCR = 100-LCL;
+      printLC12(LC1);
+      printLC22(LC2);
+      printLR2(LCL, LCR, LCT);
+      print2Total(LCT);
+      newDataReady = 0;
+      t = millis();
+    }
+  }
+}
+
+void threeLoadCells() {
   static boolean newDataReady = 0;
   const int serialPrintInterval = updateTime; //increase value to slow down serial print activity
 
-
-  if (button4Presses == 1) {
-    tearAll();
-    button4Presses = 0;
+  // check for new data/start next conversion:
+  if (LoadCell_1.update()) {
+    newDataReady = true;
+    LoadCell_2.update();
+    LoadCell_3.update();
   }
 
-  if (button3Presses == 1) {
-    Serial.println("Button 3 pressed");
-    button3Presses = 0;
+  //get smoothed value from data set
+  if ((newDataReady)) {
+    if (millis() > t + serialPrintInterval) {
+      float LC1 = max(LoadCell_1.getData(), (float) 0);
+      float LC2 = max(LoadCell_2.getData(), (float) 0);
+      float LC3 = max(LoadCell_3.getData(), (float) 0);
+      float LCL = abs(LC2/(LC2+LC3)) * 100;
+      LCL = min(LCL, (float) 100);
+      float LCR = 100-LCL;
+      float LCF = abs(LC1/(LC2+LC3)*100);
+      LCF = min(LCF, (float) 100);
+      float LCB = 100-LCF;
+      float LCT = LC1+LC2+LC3;
+      printLC13(LC1);
+      printLC23(LC2);
+      printLC33(LC3);
+      printLR(LCL,LCR,LC2+LC3);
+      printFB(LCF,LCB,LCT);
+      printTotal(LCT);
+      newDataReady = 0;
+      t = millis();
+    }
   }
+}
 
-  if (button2Presses == 1) {
-    Serial.println("Button 2 pressed");
-    button2Presses = 0;
-  }
-
-  if (button1Presses == 1) {
-    Serial.println("Button 1 pressed");
-    delay(50);
-    calibrateMenu();
-    lcd.clear();
-    print4Background();
-    button1Presses = 0;
-  }
+void fourLoadCells() {
+  static boolean newDataReady = 0;
+  const int serialPrintInterval = updateTime; //increase value to slow down serial print activity
 
   // check for new data/start next conversion:
-  if (LoadCell_1.update()) newDataReady = true;
-  LoadCell_2.update();
-  LoadCell_3.update();
-  LoadCell_4.update();
+  if (LoadCell_1.update()) {
+    newDataReady = true;
+    LoadCell_2.update();
+    LoadCell_3.update();
+    LoadCell_4.update();
+  }
 
   //get smoothed value from data set
   if ((newDataReady)) {
@@ -703,16 +932,61 @@ void loop() {
         } else { Serial.print("N/A");}
         Serial.println();
       }
-      printLC1(LC1);
-      printLC2(LC2);
-      printLC3(LC3);
-      printLC4(LC4);
+      printLC14(LC1);
+      printLC24(LC2);
+      printLC34(LC3);
+      printLC44(LC4);
       printLR(LCL,LCR,LCT);
       printFB(LCF,LCB,LCT);
       printTotal(LCT);
       newDataReady = 0;
       t = millis();
     }
+  }
+}
+
+void loop() {
+
+  if (button4Presses == 1) {
+    disableInterrupts();
+    tearAll();
+    enableInterrupts();
+    button4Presses = 0;
+  }
+
+  if (button3Presses == 1) {
+    button3Presses = 0;
+  }
+
+  if (button2Presses == 1) {
+    delay(50);
+    disableInterrupts();
+    cellCountSelection();
+    enableInterrupts();
+    button2Presses = 0;
+  }
+
+  if (button1Presses == 1) {
+    delay(50);
+    disableInterrupts();
+    calibrateMenu();
+    enableInterrupts();
+    button1Presses = 0;
+  }
+
+  switch (loadCellCount) {
+    case 1:
+      oneLoadCell();
+      break;
+    case 2:
+      twoLoadCells();
+      break;
+    case 3:
+      threeLoadCells();
+      break;
+    case 4:
+      fourLoadCells();
+      break;
   }
 
   // receive command from serial terminal, send 't' to initiate tare operation:
