@@ -1,7 +1,9 @@
 #include <LCD.h>
 
+// Set in configuration menu while running
 int loadCellCount = 0;
 
+// Button 4 ISR and setup
 #define button4_pin 12
 int button4Presses = 0;
 unsigned long button4_time = 0;
@@ -15,6 +17,7 @@ void IRAM_ATTR button4ISR() {
   }
 }
 
+// Button 3 ISR and setup
 #define button3_pin 14
 int button3Presses = 0;
 unsigned long button3_time = 0;
@@ -28,6 +31,7 @@ void IRAM_ATTR button3ISR() {
   }
 }
 
+// Button 2 ISR and setup
 #define button2_pin 26
 int button2Presses = 0;
 unsigned long button2_time = 0;
@@ -41,6 +45,7 @@ void IRAM_ATTR button2ISR() {
   }
 }
 
+// Button 1 ISR and setup
 #define button1_pin 25
 int button1Presses = 0;
 unsigned long button1_time = 0;
@@ -83,20 +88,22 @@ const int HX711_dout_4 = 23;
 const int HX711_sck_4 = 27;
 
 const int samples = 16; //Samples to take from each load cell
-const int updateTime = 500; //milliseconds to wait between each update
+const int updateTime = 250; //milliseconds to wait between each update
 
 //HX711 constructor (dout pin, sck pin)
 HX711_ADC LoadCell_1(HX711_dout_1, HX711_sck_1); //HX711 1
 HX711_ADC LoadCell_2(HX711_dout_2, HX711_sck_2); //HX711 2
-HX711_ADC LoadCell_3(HX711_dout_3, HX711_sck_3);
-HX711_ADC LoadCell_4(HX711_dout_4, HX711_sck_4);
+HX711_ADC LoadCell_3(HX711_dout_3, HX711_sck_3); //HX711 3
+HX711_ADC LoadCell_4(HX711_dout_4, HX711_sck_4); //HX711 4
 
 const int calVal_eepromAdress_1 = 0; // eeprom adress for calibration value load cell 1 (4 bytes)
 const int calVal_eepromAdress_2 = 4; // eeprom adress for calibration value load cell 2 (4 bytes)
-const int calVal_eepromAdress_3 = 8;
-const int calVal_eepromAdress_4 = 12;
+const int calVal_eepromAdress_3 = 8; // eeprom adress for calibration value load cell 3
+const int calVal_eepromAdress_4 = 12; //eeprom adress for calibration value load cell 4
 unsigned long t = 0;
 
+
+// Setup of all device, define pins, LCD, HX711 configurations, etc.
 void setup() {
   Serial.begin(57600); delay(10);
   Serial.println();
@@ -185,6 +192,7 @@ void setup() {
   cellCountSelection();
 }
 
+// Turn on the interrupt buttons
 void enableInterrupts() {
   attachInterrupt(button1_pin, button1ISR, FALLING);
   attachInterrupt(button2_pin, button2ISR, FALLING);
@@ -193,6 +201,7 @@ void enableInterrupts() {
 
 }
 
+// Turn off the interrupt buttons
 void disableInterrupts() {
   detachInterrupt(digitalPinToInterrupt(button1_pin));
   detachInterrupt(digitalPinToInterrupt(button2_pin));
@@ -200,10 +209,7 @@ void disableInterrupts() {
   detachInterrupt(digitalPinToInterrupt(button4_pin));
 }
 
-void getSamples() {
-  Serial.println(LoadCell_1.getSamplesInUse());
-}
-
+// setBackground calls the appropriate background in LCD.h to show the background for main screen based on the number of load cells that were configured.
 void setBackground() {
   switch (loadCellCount) {
     case 1:
@@ -221,6 +227,7 @@ void setBackground() {
   }
 }
 
+// Configuration menu. Lets user choose how many load cells are connected. Sets loadCellCount to the selection. 
 void cellCountSelection() {
   LoadCell_1.powerDown();
   LoadCell_2.powerDown();
@@ -319,6 +326,7 @@ void cellCountSelection() {
   setBackground();
 }
 
+// Tear load cell 1, prints on LCD.
 void tear1() {
   lcd.clear();
   printTear1();
@@ -329,6 +337,7 @@ void tear1() {
   }
 }
 
+// Tear load cell 2, prints on LCD.
 void tear2() {
   printTear2();
   LoadCell_2.tare();  
@@ -338,6 +347,7 @@ void tear2() {
   }
 }
 
+// Tear load cell 3, prints on LCD.
 void tear3() {
   printTear3();
   LoadCell_3.tare();
@@ -347,6 +357,7 @@ void tear3() {
   }
 }
 
+// Tear load cell 4, prints on LCD.
 void tear4() {
   printTear4();
   LoadCell_4.tare();
@@ -356,6 +367,7 @@ void tear4() {
   } 
 }
 
+// Tears the number of load cells that are connected based on loadCellCount. Prints on LCD, when returning prints main screen.
 void tearAll() {
   switch (loadCellCount) {
     case 1:
@@ -383,6 +395,8 @@ void tearAll() {
   setBackground();
 }
 
+// Calibration procedure for LCD screen, interacts with the four buttons on the device. int LoadCell is which load cell is to be calibrated. 
+// Assumed the load cell amplifier is in the powered on state.
 void buttonCalibrate(int LoadCell) {
   button1Presses = 0;
   button2Presses = 0;
@@ -686,6 +700,7 @@ void buttonCalibrate(int LoadCell) {
   }
 }
 
+// Menu to assist with buttonCalibrate. Lets user select which load cell to calibrate. Only allowed to select load cell if enabled by loadCellCount.
 void calibrateMenu() {
   button1Presses = 0;
 
@@ -795,6 +810,7 @@ void calibrateMenu() {
   setBackground();
 }
 
+// Operational section for main screen with one connected load cell. 
 void oneLoadCell() {
   static boolean newDataReady = 0;
   const int serialPrintInterval = updateTime;
@@ -811,6 +827,7 @@ void oneLoadCell() {
   }
 }
 
+// Operational section for main screen with two connected load cells.
 void twoLoadCells() {
   static boolean newDataReady = 0;
   const int serialPrintInterval = updateTime;
@@ -838,6 +855,7 @@ void twoLoadCells() {
   }
 }
 
+// Operational section for main screen with three connected load cells.
 void threeLoadCells() {
   static boolean newDataReady = 0;
   const int serialPrintInterval = updateTime; //increase value to slow down serial print activity
@@ -874,6 +892,7 @@ void threeLoadCells() {
   }
 }
 
+// Operational section for main screen with four connected load cells.
 void fourLoadCells() {
   static boolean newDataReady = 0;
   const int serialPrintInterval = updateTime; //increase value to slow down serial print activity
@@ -945,8 +964,10 @@ void fourLoadCells() {
   }
 }
 
+// Main loop section of program. Responds to button presses, and calls oneLoadCell - fourLoadCells.
 void loop() {
 
+  // If button one is pressed, tear enabled load cells.
   if (button4Presses == 1) {
     disableInterrupts();
     tearAll();
@@ -954,18 +975,20 @@ void loop() {
     button4Presses = 0;
   }
 
+  // Ignore button 3 presses, no current action.
   if (button3Presses == 1) {
     button3Presses = 0;
   }
 
+  // If button two is pressed, change load cell configuration.
   if (button2Presses == 1) {
-    delay(50);
     disableInterrupts();
     cellCountSelection();
     enableInterrupts();
     button2Presses = 0;
   }
 
+  // If button one is pressed, enter calibrateMenu.
   if (button1Presses == 1) {
     delay(50);
     disableInterrupts();
@@ -974,6 +997,7 @@ void loop() {
     button1Presses = 0;
   }
 
+  // Updated enabled load cells, based on loadCellCount
   switch (loadCellCount) {
     case 1:
       oneLoadCell();
