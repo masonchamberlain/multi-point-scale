@@ -88,7 +88,7 @@ const int HX711_dout_4 = 23;
 const int HX711_sck_4 = 27;
 
 const int samples = 16; //Samples to take from each load cell
-const int updateTime = 250; //milliseconds to wait between each update
+const int updateTime = 500; //milliseconds to wait between each update
 
 //HX711 constructor (dout pin, sck pin)
 HX711_ADC LoadCell_1(HX711_dout_1, HX711_sck_1); //HX711 1
