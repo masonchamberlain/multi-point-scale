@@ -876,9 +876,9 @@ void threeLoadCells() {
       float LCL = abs(LC2/(LC2+LC3)) * 100;
       LCL = min(LCL, (float) 100);
       float LCR = 100-LCL;
-      float LCF = abs(LC1/(LC2+LC3)*100);
-      LCF = min(LCF, (float) 100);
-      float LCB = 100-LCF;
+      float LCB = abs(LC1/(LC2+LC3)*100);
+      LCB = min(LCB, (float) 100);
+      float LCF = 100-LCB;
       float LCT = LC1+LC2+LC3;
       printLC13(LC1);
       printLC23(LC2);
@@ -916,9 +916,9 @@ void fourLoadCells() {
       float LCL = abs((LC1+LC3)/((LC1+LC3)+(LC2+LC4))*100);
       LCL = min(LCL, (float) 100);
       float LCR = 100-LCL;
-      float LCF = abs((LC1+LC2)/((LC1+LC2)+(LC3+LC4))*100);
-      LCF = min(LCF, (float) 100);
-      float LCB = 100-LCF;
+      float LCB = abs((LC1+LC2)/((LC1+LC2)+(LC3+LC4))*100);
+      LCB = min(LCB, (float) 100);
+      float LCF = 100-LCB;
       float LCT = LC1+LC2+LC3+LC4;
       if (debug) {
         Serial.print("Load_cell 1 output val: ");
