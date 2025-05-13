@@ -1019,8 +1019,5 @@ void loop() {
     if (inByte == 't') {
       tearAll();
     }
-    else if (inByte == 's') {
-      getSamples();
-    }
   }
 }
