@@ -12,7 +12,7 @@ void splashScreen() {
   lcd.setCursor(1, 0);
   lcd.print("Multi-point scale");
   lcd.setCursor(3, 1);
-  lcd.print("Version 0.3.0");
+  lcd.print("Version 0.3.1");
   lcd.setCursor(3, 2);
   lcd.print("Designed by");
   lcd.setCursor(6, 3);
